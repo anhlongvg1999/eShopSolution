@@ -19,5 +19,7 @@ namespace eShopSolution.Data.Entities
         public string Message { set; get; }
         public TransactionStatus Status { set; get; }
         public string Provider { set; get; }//nhà cung cấp
+        public Guid UserID { set; get; }
+        public AppUser AppUser { set; get; }
     }
 }
