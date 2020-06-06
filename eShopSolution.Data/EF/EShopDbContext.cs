@@ -1,5 +1,6 @@
 ﻿using eShopSolution.Data.Configurations;
 using eShopSolution.Data.Entities;
+using eShopSolution.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace eShopSolution.Data.EF
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //using fluent API
             modelBuilder.ApplyConfiguration(new AppConfigConfiguration());
             modelBuilder.ApplyConfiguration(new ProductConfiguration());
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
@@ -27,7 +29,13 @@ namespace eShopSolution.Data.EF
             modelBuilder.ApplyConfiguration(new OrderDetailConfiguration());
             modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new PromotionConfiguration());
-
+            //data seeding : dữ liệu chim muồi
+            /*modelBuilder.Entity<AppConfig>().HasData(
+                new AppConfig() { Key = "HomeTitle", Value = "This is home page of eShopSolution" }
+                new AppConfig() { Key = "HomeKeywoed", Value = "This is Key word of eShopSolution" }
+                new AppConfig() { Key = "HomeDescription", Value = "This is description of eShopSolution" }
+            );*/
+            modelBuilder.Seed();
 
             //base.OnModelCreating(modelBuilder);
         }
