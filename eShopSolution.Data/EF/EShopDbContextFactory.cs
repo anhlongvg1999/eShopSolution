@@ -8,6 +8,9 @@ using System.Text;
 
 namespace eShopSolution.Data.EF
 {
+    /// <summary>
+    /// đọc appsetting 
+    /// </summary>
     class EShopDbContextFactory : IDesignTimeDbContextFactory<EShopDbContext>
     {
         public EShopDbContext CreateDbContext(string[] args)
