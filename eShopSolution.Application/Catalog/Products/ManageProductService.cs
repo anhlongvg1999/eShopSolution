@@ -1,26 +1,33 @@
-﻿
-using DocumentFormat.OpenXml.Wordprocessing;
-using eShopSolution.Application.Catalog.Products.Dtos;
-using eShopSolution.Application.Catalog.Products.Dtos.Manage;
-using eShopSolution.Application.Dtos;
-using eShopSolution.Data.EF;
+﻿using eShopSolution.Data.EF;
 using eShopSolution.Data.Entities;
 using eShopSolution.Utilities.Exceptions;
+using eShopSolution.ViewModels.Catalog.Products;
+using eShopSolution.ViewModels.Comon;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using eShopSolution.Application.Common;
 
 namespace eShopSolution.Application.Catalog.Products
 {
     public class ManageProductService : IManageProductService
     {
         private readonly EShopDbContext _context;
-        public ManageProductService(EShopDbContext context)
+        private readonly IstorageService _storageService;
+        public ManageProductService(EShopDbContext context,IstorageService storageService)
         {
+            _storageService = storageService;
             _context = context;
+        }
+
+        public Task<int> AddImages(int productId, List<IFormFile> files)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task AddViewCount(int productId)
@@ -58,6 +65,22 @@ namespace eShopSolution.Application.Catalog.Products
                     }
                 }
             };
+            //save image
+            if(request.ThunbmailImage != null)
+            {
+                product.ProductImages = new List<ProductImage>()
+                {
+                    new ProductImage()
+                    {
+                        Caption = "Thumbmail image",    
+                        DateCreated = DateTime.Now,
+                        FileSize = request.ThunbmailImage.Length,
+                        ImagePath = await this.SaveFile(request.ThunbmailImage),
+                        IsDefauls = true,
+                        SortOrder = 1
+                    }
+                };
+            }
             _context.Products.Add(product);
             return await _context.SaveChangesAsync();
         }
@@ -70,12 +93,20 @@ namespace eShopSolution.Application.Catalog.Products
         public async Task<int> Delete(int productId)
         {
             var product = await _context.Products.FindAsync(productId);
-            if (product == null) throw new EShopException($"Cannot find a product:{productId}");
+            if (product == null) throw new EShopException($"Cannot find a product: {productId}");
+
+            var images = _context.ProductImages.Where(i => i.ProductId == productId);
+            foreach (var image in images)
+            {
+                await _storageService.DeleteFileAsync(image.ImagePath);
+            }
+
             _context.Products.Remove(product);
+
             return await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResult<ProductViewModel>> GetAllPaging(GetProductPagingRequest request)
+        public async Task<PagedResult<ProductViewModel>> GetAllPaging(GetManageProductPagingRequest request)
         {
             //1.select join
             var query = from p in _context.Products
@@ -84,9 +115,9 @@ namespace eShopSolution.Application.Catalog.Products
                         join c in _context.Categories on pic.CategoryId equals c.Id
                         select new {p,pt,pic };
             //2.filer
-            if (!string.IsNullOrEmpty(request.Keyword))
+            if (!string.IsNullOrEmpty(request.keyword))
             {
-                query = query.Where(x => x.pt.Name.Contains(request.Keyword));
+                query = query.Where(x => x.pt.Name.Contains(request.keyword));
             }
             if(request.CategoryId.Count > 0)
             {
@@ -120,6 +151,17 @@ namespace eShopSolution.Application.Catalog.Products
             };
             return PageResult;
         }
+
+        public Task<List<ProductImageViewModel>> GetListImage(int productId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> RemoveImages(int imageId)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Cập nhật sản phẩm
         /// </summary>
@@ -139,6 +181,12 @@ namespace eShopSolution.Application.Catalog.Products
             return await _context.SaveChangesAsync();
 
         }
+
+        public Task<int> UpdateImages(int imageId, string caption, bool isDefault)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Cập nhật giá
         /// </summary>
@@ -164,6 +212,13 @@ namespace eShopSolution.Application.Catalog.Products
             if (product == null) throw new EShopException($"Cannot find a product with id:{productId}");
             product.Stock += addedQuantity;
             return await _context.SaveChangesAsync() > 0;
+        }
+        private async Task<string> SaveFile(IFormFile file)
+        {
+            var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
+            await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
+            return fileName;
         }
     }
 }

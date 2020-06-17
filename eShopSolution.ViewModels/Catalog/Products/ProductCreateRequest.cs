@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace eShopSolution.Application.Catalog.Products.Dtos.Manage
+namespace eShopSolution.ViewModels.Catalog.Products
 {
     public class ProductCreateRequest
     {
@@ -16,5 +17,6 @@ namespace eShopSolution.Application.Catalog.Products.Dtos.Manage
         public string SeoTitle { set; get; }
         public string SeoAlias { set; get; }
         public string LanguageId { set; get; }
+        public IFormFile ThunbmailImage { set; get; }
     }
 }
