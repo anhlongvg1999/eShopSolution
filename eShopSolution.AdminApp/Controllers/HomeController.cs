@@ -5,9 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using eShopSolution.BackendAPI.Models;
+using eShopSolution.AdminApp.Models;
 
-namespace eShopSolution.BackendAPI.Controllers
+namespace eShopSolution.AdminApp.Controllers
 {
     public class HomeController : Controller
     {
@@ -20,7 +20,18 @@ namespace eShopSolution.BackendAPI.Controllers
 
         public IActionResult Index()
         {
-            return Ok();
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }
